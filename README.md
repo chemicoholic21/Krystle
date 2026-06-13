@@ -172,25 +172,47 @@ Your Apply / Watchlist / Ignore actions are recorded as feedback to refine futur
 
 1. Push the repo and import the project into Vercel. The Next.js app is at the
    repository root, so the **Root Directory** can be left as the default (`./`).
-2. Deploy. The build command in `vercel.json` is `prisma generate && next build`,
-   which needs **no database**, so the app deploys and the landing/login UI loads
-   even before any environment variables are set.
+2. Add all environment variables from the table above (set `NEXTAUTH_URL` to your
+   production domain). Use a managed Postgres such as Neon for `DATABASE_URL`.
+3. Deploy.
 
-> **Note — auth is temporarily disabled.** `auth()` in `src/lib/auth.ts` currently
-> returns `null` so the app runs without OAuth/database configuration. The landing
-> page (`/`) and `/login` render; protected `/dashboard` routes redirect to `/login`.
+The build command in `vercel.json` runs on every deploy:
 
-### Enabling the full app
+```
+prisma generate && prisma db push --accept-data-loss && next build
+```
 
-Once you have a database and credentials:
+This generates the Prisma client **and applies the schema to your database**, so no
+manual migration step is needed. `DATABASE_URL` must be set, or the build will fail.
 
-1. Add the environment variables from the table above in Vercel (use a managed
-   Postgres such as Neon for `DATABASE_URL`).
-2. Apply the schema once: `npx prisma db push` (or add it back to the build command).
-3. Re-enable auth: in `src/lib/auth.ts`, uncomment the `getServerSession` block and
-   remove the temporary `return null;`.
+Authentication uses NextAuth with the Prisma adapter (database sessions). You need
+`NEXTAUTH_SECRET`, `NEXTAUTH_URL`, and at least one OAuth provider configured — see
+[Setting up authentication](#setting-up-authentication) below.
 
 No secrets are hardcoded — everything is read from environment variables.
+
+## Setting up authentication
+
+1. **Generate the session secret:**
+   ```bash
+   openssl rand -base64 32
+   ```
+   Use the output as `NEXTAUTH_SECRET`.
+
+2. **Create a GitHub OAuth app** at <https://github.com/settings/developers> →
+   *New OAuth App*:
+   - Homepage URL: your app URL (e.g. `https://your-app.vercel.app`)
+   - Authorization callback URL: `https://your-app.vercel.app/api/auth/callback/github`
+   - Copy the Client ID → `GITHUB_ID` and a generated Client Secret → `GITHUB_SECRET`.
+
+3. **(Optional) Create a Google OAuth client** at
+   <https://console.cloud.google.com/apis/credentials> → *Create Credentials → OAuth client ID*:
+   - Authorized redirect URI: `https://your-app.vercel.app/api/auth/callback/google`
+   - Copy the values into `GOOGLE_ID` / `GOOGLE_SECRET`.
+
+4. **Set `NEXTAUTH_URL`** to your exact app origin (no trailing slash). For local dev
+   use `http://localhost:3000` and add `http://localhost:3000/api/auth/callback/github`
+   as a second callback URL on the OAuth app.
 
 ## Roadmap
 
