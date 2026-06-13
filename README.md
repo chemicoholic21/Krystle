@@ -54,13 +54,12 @@ Most job platforms recommend irrelevant roles, push senior positions to junior c
 ### 1. Install dependencies
 
 ```bash
-cd krystle
 npm install
 ```
 
 ### 2. Configure environment variables
 
-Create a `.env` file in the `krystle/` directory:
+Create a `.env` file in the project root:
 
 ```bash
 # --- Database (required) ---
@@ -124,7 +123,7 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Project structure
 
 ```
-krystle/
+.
 ├── prisma/
 │   └── schema.prisma          # Postgres data model
 ├── src/
@@ -165,10 +164,11 @@ Your Apply / Watchlist / Ignore actions are recorded as feedback to refine futur
 
 ## Deployment (Vercel)
 
-1. Push the repo and import the project into Vercel (root directory: `krystle`).
+1. Push the repo and import the project into Vercel. The Next.js app is at the
+   repository root, so the **Root Directory** can be left as the default (`./`).
 2. Add all environment variables from the table above (set `NEXTAUTH_URL` to your production domain).
 3. Use a managed Postgres (e.g. Neon) for `DATABASE_URL` and run `npx prisma db push` / `migrate deploy` against it.
-4. Deploy.
+4. Deploy. The build command (`prisma generate && next build`) is defined in `vercel.json`.
 
 No secrets are hardcoded — everything is read from environment variables.
 
