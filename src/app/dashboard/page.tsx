@@ -1,10 +1,15 @@
 import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, FileText, Bookmark, TrendingUp } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await auth();
+
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
 
   const [totalJobs, applications, watchlisted, recommended] = await Promise.all([
     prisma.job.count({ where: { userId: session!.user!.id } }),
