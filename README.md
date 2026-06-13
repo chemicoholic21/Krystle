@@ -59,7 +59,13 @@ npm install
 
 ### 2. Configure environment variables
 
-Create a `.env` file in the project root:
+Copy the example file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+The variables are:
 
 ```bash
 # --- Database (required) ---
@@ -164,11 +170,22 @@ Your Apply / Watchlist / Ignore actions are recorded as feedback to refine futur
 
 ## Deployment (Vercel)
 
+Deployment is configured to be one-click:
+
 1. Push the repo and import the project into Vercel. The Next.js app is at the
    repository root, so the **Root Directory** can be left as the default (`./`).
-2. Add all environment variables from the table above (set `NEXTAUTH_URL` to your production domain).
-3. Use a managed Postgres (e.g. Neon) for `DATABASE_URL` and run `npx prisma db push` / `migrate deploy` against it.
-4. Deploy. The build command (`prisma generate && next build`) is defined in `vercel.json`.
+2. Add the environment variables from the table above (set `NEXTAUTH_URL` to your
+   production domain). Use a managed Postgres (e.g. Neon) for `DATABASE_URL`.
+3. Deploy.
+
+The build command in `vercel.json` runs automatically on every deploy:
+
+```
+prisma generate && prisma db push --accept-data-loss && next build
+```
+
+This generates the Prisma client **and applies the database schema**, so you don't
+need to run any migration step manually — just set `DATABASE_URL` and deploy.
 
 No secrets are hardcoded — everything is read from environment variables.
 
