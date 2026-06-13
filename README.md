@@ -170,22 +170,25 @@ Your Apply / Watchlist / Ignore actions are recorded as feedback to refine futur
 
 ## Deployment (Vercel)
 
-Deployment is configured to be one-click:
-
 1. Push the repo and import the project into Vercel. The Next.js app is at the
    repository root, so the **Root Directory** can be left as the default (`./`).
-2. Add the environment variables from the table above (set `NEXTAUTH_URL` to your
-   production domain). Use a managed Postgres (e.g. Neon) for `DATABASE_URL`.
-3. Deploy.
+2. Deploy. The build command in `vercel.json` is `prisma generate && next build`,
+   which needs **no database**, so the app deploys and the landing/login UI loads
+   even before any environment variables are set.
 
-The build command in `vercel.json` runs automatically on every deploy:
+> **Note — auth is temporarily disabled.** `auth()` in `src/lib/auth.ts` currently
+> returns `null` so the app runs without OAuth/database configuration. The landing
+> page (`/`) and `/login` render; protected `/dashboard` routes redirect to `/login`.
 
-```
-prisma generate && prisma db push --accept-data-loss && next build
-```
+### Enabling the full app
 
-This generates the Prisma client **and applies the database schema**, so you don't
-need to run any migration step manually — just set `DATABASE_URL` and deploy.
+Once you have a database and credentials:
+
+1. Add the environment variables from the table above in Vercel (use a managed
+   Postgres such as Neon for `DATABASE_URL`).
+2. Apply the schema once: `npx prisma db push` (or add it back to the build command).
+3. Re-enable auth: in `src/lib/auth.ts`, uncomment the `getServerSession` block and
+   remove the temporary `return null;`.
 
 No secrets are hardcoded — everything is read from environment variables.
 
